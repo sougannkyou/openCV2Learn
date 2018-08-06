@@ -18,7 +18,7 @@ def debug(x, y):
     cv2.destroyAllWindows()
     cv2.waitKey(100)
 
-
+#
 def test():
     # pos = ac.find_template(img_bg, img_obj, threshold=0.7)
     # print(pos)
