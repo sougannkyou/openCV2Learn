@@ -7,8 +7,8 @@ import aircv as ac
 # img_obj = ac.imread("images/huoshan/share.png")
 # img_bg = ac.imread("images/huoshan/bg2.png")
 
-img_obj = ac.imread("dianping_dafen.png")
-img_bg = ac.imread("dianping_ng.png")
+img_obj = ac.imread("dianping/dianping_dafen.png")
+img_bg = ac.imread("dianping/dianping6.png")
 
 
 def debug(x, y):
@@ -34,4 +34,4 @@ if __name__ == '__main__':
     ret = test()
     (x, y) = ret['result']
     debug(x, y)
-    print(cv2.getBuildInformation())
+    # print(cv2.getBuildInformation())
