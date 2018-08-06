@@ -113,6 +113,6 @@ if __name__ == '__main__':
     # 读取文件
     # imagePath = sys.argv[1]
     # image_path = 'text.png'
-    image_path = 'dianping8.png'
+    image_path = 'dianping/dianping8.png'
     img = cv2.imread(image_path)
     detect(img)
