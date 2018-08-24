@@ -20,11 +20,11 @@ img.save('dianping/p2_new.png')
 # 800 * 480
 img1 = cv2.imread('dianping/p1_new.png')
 # img1 = img[0:0, 750:480]  # 左上角坐标(0,0)，右下角坐标(480,750)
-# # cv2.imwrite('dianping/p1_new.png', img1)
-#
+# cv2.imwrite('dianping/p1_new.png', img1)
+
 img2 = cv2.imread('dianping/p2_new.png')
 # img2 = img[0:0, 750:480]
-# # cv2.imwrite('dianping/p2_new.png', img2)
+# cv2.imwrite('dianping/p2_new.png', img2)
 
 # gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
 # gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
@@ -39,16 +39,16 @@ img2 = cv2.imread('dianping/p2_new.png')
 img_bg = np.vstack((img1, img2))
 cv2.imwrite('dianping/img_bg.png', img_bg)
 # img_bg = np.vstack((gray1, gray2))
-# # 横向连接
-# # image = np.concatenate([gray1, gray2], axis=1)
-#
-# # ====使用pandas数据集处理的连接concat========
-#
+# 横向连接
+# image = np.concatenate([gray1, gray2], axis=1)
+
+# ====使用pandas数据集处理的连接concat========
+
 # df1 = pd.DataFrame(gray1)
 # df2 = pd.DataFrame(gray2)  # ndarray to dataframe
 # df = pd.concat([df1, df2])
-# # 纵向连接,横向连接
-# # df = pd.concat([df1, df2], axis=1)
+# 纵向连接,横向连接
+# df = pd.concat([df1, df2], axis=1)
 # image = np.array(df)  # dataframe to ndarray
 
 # 152 * 152
