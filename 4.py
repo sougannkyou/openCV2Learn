@@ -11,11 +11,13 @@ def preprocess(gray):
     # 2. 二值化
     ret, binary = cv2.threshold(sobel, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
 
+    binary = cv2.GaussianBlur(binary, (7, 7), 0)
+
     # 3. 膨胀和腐蚀操作的核函数
-    # element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
     element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
-    # element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
-    element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
+    # element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
+    element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+    # element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
 
     # 4. 膨胀一次，让轮廓突出
     dilation = cv2.dilate(binary, element2, iterations=1)
