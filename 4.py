@@ -12,8 +12,10 @@ def preprocess(gray):
     ret, binary = cv2.threshold(sobel, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
 
     # 3. 膨胀和腐蚀操作的核函数
+    # element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
     element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
-    element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+    # element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+    element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
 
     # 4. 膨胀一次，让轮廓突出
     dilation = cv2.dilate(binary, element2, iterations=1)
@@ -112,7 +114,7 @@ def detect(img):
 if __name__ == '__main__':
     # 读取文件
     # imagePath = sys.argv[1]
-    # image_path = 'text.png'
-    image_path = 'dianping/dianping8.png'
+    image_path = 'news1.png'
+    # image_path = 'dianping/dianping8.png'
     img = cv2.imread(image_path)
     detect(img)
