@@ -4,7 +4,9 @@ import cv2
 import numpy as np
 from pprint import pprint
 
+# FONT_SIZE = 24
 FONT_SIZE = 18
+
 LINE_MIN_SIZE = 5
 
 
@@ -16,9 +18,15 @@ def preprocess(gray):
     ret, binary = cv2.threshold(sobel, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
 
     # binary = cv2.GaussianBlur(binary, (7, 7), 0)
+    # FONT_SIZE = 18
     binary = cv2.medianBlur(binary, 3)
     binary = cv2.medianBlur(binary, 1)
     binary = cv2.medianBlur(binary, 1)
+
+    # FONT_SIZE = 24
+    # binary = cv2.medianBlur(binary, 3)
+    # binary = cv2.medianBlur(binary, 3)
+    # binary = cv2.medianBlur(binary, 3)
 
     # 3. 膨胀和腐蚀操作的核函数
     # FONT_SIZE = 24
@@ -142,8 +150,8 @@ if __name__ == '__main__':
     # imagePath = sys.argv[1]
     # image_path = 'test_image/text_line/tenxun{}.png'.format(18)
     # image_path = 'test_image/text_line/shouhu{}.png'.format(7)
-    # image_path = 'test_image/text_line/sina{}.png'.format(5)  # bug:4
-    # image_path = 'test_image/text_line/163_{}.png'.format(7)  # bug:1 6 7
-    image_path = 'test_image/text_line/ifeng{}.png'.format(3)  # bug:3
+    image_path = 'test_image/text_line/sina{}.png'.format(4)  # bug:4
+    # image_path = 'test_image/text_line/163_{}.png'.format(6)  # bug: 6 7
+    # image_path = 'test_image/text_line/ifeng{}.png'.format(3)  # bug:
     img = cv2.imread(image_path)
     detect(img)
