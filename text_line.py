@@ -2,6 +2,10 @@
 import sys
 import cv2
 import numpy as np
+from pprint import pprint
+
+FONT_SIZE = 24
+LINE_MIN_SIZE = 5
 
 
 def preprocess(gray):
@@ -11,22 +15,24 @@ def preprocess(gray):
     # 2. 二值化
     ret, binary = cv2.threshold(sobel, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
 
-    binary = cv2.GaussianBlur(binary, (7, 7), 0)
+    # binary = cv2.GaussianBlur(binary, (7, 7), 0)
+    binary = cv2.medianBlur(binary, 3)
+    binary = cv2.medianBlur(binary, 3)
+    binary = cv2.medianBlur(binary, 3)
 
     # 3. 膨胀和腐蚀操作的核函数
-    element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
-    # element1 = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
-    element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
-    # element2 = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
+    erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
+    dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+    dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
 
     # 4. 膨胀一次，让轮廓突出
-    dilation = cv2.dilate(binary, element2, iterations=1)
+    dilation = cv2.dilate(binary, dilation_rect, iterations=1)
 
     # 5. 腐蚀一次，去掉细节，如表格线等。注意这里去掉的是竖直的线
-    erosion = cv2.erode(dilation, element1, iterations=1)
+    erosion = cv2.erode(dilation, erosion_rect, iterations=1)
 
     # 6. 再次膨胀，让轮廓明显一些
-    dilation2 = cv2.dilate(erosion, element2, iterations=3)
+    dilation2 = cv2.dilate(erosion, dilation2_rect, iterations=3)
 
     # 7. 存储中间图片
     cv2.namedWindow("binary", cv2.WINDOW_NORMAL)
@@ -41,11 +47,11 @@ def preprocess(gray):
     cv2.imshow("erosion", erosion)
     cv2.imwrite("erosion.png", erosion)
 
-    cv2.namedWindow("dilation2", cv2.WINDOW_NORMAL)
-    cv2.imshow("dilation2", dilation2)
-    cv2.imwrite("dilation2.png", dilation2)
+    # cv2.namedWindow("dilation2", cv2.WINDOW_NORMAL)
+    # cv2.imshow("dilation2", dilation2)
+    # cv2.imwrite("dilation2.png", dilation2)
 
-    return dilation2
+    return erosion
 
 
 def findTextRegion(img):
@@ -61,7 +67,7 @@ def findTextRegion(img):
         area = cv2.contourArea(cnt)
 
         # 面积小的都筛选掉
-        if area < 1000:
+        if area < FONT_SIZE * FONT_SIZE * LINE_MIN_SIZE / 10:
             continue
 
         # 轮廓近似，作用很小
@@ -80,8 +86,14 @@ def findTextRegion(img):
         height = abs(box[0][1] - box[2][1])
         width = abs(box[0][0] - box[2][0])
 
-        # 筛选那些太细的矩形，留下扁的
+        if width < LINE_MIN_SIZE * FONT_SIZE:
+            continue
+
+        # 筛选掉瘦高的矩形，留下矮宽的
         if height > width * 1.2:
+            continue
+
+        if height < FONT_SIZE / 2:
             continue
 
         region.append(box)
@@ -116,7 +128,7 @@ def detect(img):
 if __name__ == '__main__':
     # 读取文件
     # imagePath = sys.argv[1]
-    image_path = 'news1.png'
+    image_path = 'test_image/text_line/news4.png'
     # image_path = 'dianping/dianping8.png'
     img = cv2.imread(image_path)
     detect(img)
