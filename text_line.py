@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from pprint import pprint
 
-FONT_SIZE = 24
+FONT_SIZE = 18
 LINE_MIN_SIZE = 5
 
 
@@ -17,13 +17,19 @@ def preprocess(gray):
 
     # binary = cv2.GaussianBlur(binary, (7, 7), 0)
     binary = cv2.medianBlur(binary, 3)
-    binary = cv2.medianBlur(binary, 3)
-    binary = cv2.medianBlur(binary, 3)
+    binary = cv2.medianBlur(binary, 1)
+    binary = cv2.medianBlur(binary, 1)
 
     # 3. 膨胀和腐蚀操作的核函数
-    erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
-    dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
-    dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+    # FONT_SIZE = 24
+    # erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
+    # dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+    # dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+
+    # FONT_SIZE = 18
+    erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 7))
+    dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
+    dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
 
     # 4. 膨胀一次，让轮廓突出
     dilation = cv2.dilate(binary, dilation_rect, iterations=1)
@@ -60,13 +66,13 @@ def findTextRegion(img):
     # 1. 查找轮廓
     image, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    # 2. 筛选那些面积小的
+    # 2. 筛选
     for i in range(len(contours)):
         cnt = contours[i]
         # 计算该轮廓的面积
         area = cv2.contourArea(cnt)
 
-        # 面积小的都筛选掉
+        # 筛选掉面积太小的
         if area < FONT_SIZE * FONT_SIZE * LINE_MIN_SIZE / 10:
             continue
 
@@ -86,14 +92,20 @@ def findTextRegion(img):
         height = abs(box[0][1] - box[2][1])
         width = abs(box[0][0] - box[2][0])
 
+        # 筛选掉宽度小于3个字宽
         if width < LINE_MIN_SIZE * FONT_SIZE:
             continue
 
         # 筛选掉瘦高的矩形，留下矮宽的
-        if height > width * 1.2:
+        if height > width:
             continue
 
+        # 筛选掉太矮的
         if height < FONT_SIZE / 2:
+            continue
+
+        # 筛选掉太矮的
+        if height * LINE_MIN_SIZE > width:
             continue
 
         region.append(box)
@@ -128,7 +140,10 @@ def detect(img):
 if __name__ == '__main__':
     # 读取文件
     # imagePath = sys.argv[1]
-    image_path = 'test_image/text_line/news4.png'
-    # image_path = 'dianping/dianping8.png'
+    # image_path = 'test_image/text_line/tenxun{}.png'.format(18)
+    # image_path = 'test_image/text_line/shouhu{}.png'.format(7)
+    # image_path = 'test_image/text_line/sina{}.png'.format(5)  # bug:4
+    # image_path = 'test_image/text_line/163_{}.png'.format(7)  # bug:1 6 7
+    image_path = 'test_image/text_line/ifeng{}.png'.format(3)  # bug:3
     img = cv2.imread(image_path)
     detect(img)
