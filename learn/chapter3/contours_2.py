@@ -28,8 +28,9 @@ for c in contours:
     # draw the circle
     img = cv2.circle(img, center, radius, (0, 255, 0), 2)
 
-cv2.drawContours(img, contours, -1, (255, 0, 0), 1)
-cv2.imshow("contours", img)
+if __name__ == '__main__':
+    cv2.drawContours(img, contours, -1, (255, 255, 0), 1)
+    cv2.imshow("contours", img)
 
-cv2.waitKey()
-cv2.destroyAllWindows()
+    cv2.waitKey()
+    cv2.destroyAllWindows()

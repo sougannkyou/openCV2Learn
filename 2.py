@@ -6,9 +6,10 @@ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 ret, thresh = cv2.threshold(gray, 127, 255, 1)
 
-image, contours, hierarchy = cv2.findContours(thresh, 1, 2)
+image, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 for cnt in contours:
-    approx = cv2.approxPolyDP(cnt, 0.01 * cv2.arcLength(cnt, True), True)
+    epsilon = 0.01 * cv2.arcLength(cnt, True)
+    approx = cv2.approxPolyDP(cnt, epsilon, True)
     print(len(approx))
     if len(approx) == 5:
         print("pentagon")
@@ -26,6 +27,7 @@ for cnt in contours:
         print("circle")
         cv2.drawContours(img, [cnt], 0, (0, 255, 255), -1)
 
-cv2.imshow('img', img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+if __name__ == '__main__':
+    cv2.imshow('img', img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
