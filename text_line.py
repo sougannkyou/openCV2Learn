@@ -184,8 +184,9 @@ class Detect(object):
                 # 小于行间距
                 if abs((bottom_y1 + top_y1) / 2 - (bottom_y2 + top_y2) / 2) < self._spacing * 2:
                     print(top_x1, top_y1, bottom_x1, bottom_y1, 'VS', top_x2, top_y2, bottom_x2, bottom_y2)
-                    focus.append((min(top_x1, top_x2), min(top_y1, top_y2),
-                                  max(bottom_x1, bottom_x2), max(bottom_y1, bottom_y2)))
+                    focus.append((
+                        min(top_x1, top_x2), min(top_y1, top_y2), max(bottom_x1, bottom_x2), max(bottom_y1, bottom_y2)
+                    ))
                     done.append(i)
                     done.append(j)
                 else:
