@@ -45,24 +45,24 @@ class Detect(object):
         if self._font_size == 15:
             erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 7))
             dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
-            dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
+            # dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
         elif self._font_size == 18:
             erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 7))
             dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
-            dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
+            # dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
         else:  # self._font_size == 24:
             erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
             dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
-            dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+            # dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
 
         # 膨胀一次，让轮廓突出
         dilation = cv2.dilate(binary, dilation_rect, iterations=1)
 
-        # 腐蚀一次，去掉细节，如表格线等。注意这里去掉的是竖直的线
+        # 腐蚀一次，去掉细节，如表格线等。去掉的是竖直的线
         erosion = cv2.erode(dilation, erosion_rect, iterations=1)
 
-        # 再次膨胀，让轮廓明显一些
-        dilation2 = cv2.dilate(erosion, dilation2_rect, iterations=3)
+        # 再次膨胀，轮廓明显
+        # dilation2 = cv2.dilate(erosion, dilation2_rect, iterations=3)
 
         if self._DEBUG:
             cv2.namedWindow("binary", self.window_flags)
@@ -242,8 +242,8 @@ if __name__ == '__main__':
     # image_path = 'test_image/text_line/baidu{}.png'.format(4)  # bug: 6
     # image_path = 'test_image/text_line/shouhu{}.png'.format(7)
     # image_path = 'test_image/text_line/sina{}.png'.format(4)  # bug:4
-    image_path = 'test_image/text_line/163_{}.png'.format(3)  # bug: 6 7
-    # image_path = 'test_image/text_line/ifeng{}.png'.format(3)  # bug:3
+    # image_path = 'test_image/text_line/163_{}.png'.format(5)  # bug: 6 7
+    image_path = 'test_image/text_line/ifeng{}.png'.format(3)  # bug:3  font_size=15
     start = datetime.now()
     d = Detect(font_size=18)
     d._DEBUG = True
