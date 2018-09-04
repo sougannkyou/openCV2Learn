@@ -18,7 +18,7 @@ class Detect(object):
         self._SHOW_TOP_X = 60
         self._SHOW_TOP_Y = 100
         self._font_size = font_size
-        self._spacing = font_size
+        self._spacing = font_size * 3  # 行距为3倍字宽
         self._region = region
         self._img_obj = None
 
@@ -110,18 +110,17 @@ class Detect(object):
             # cv2.drawContours(img, [contour], 0, 255, -1)
             # cv2.imshow('img', img)
 
-            # 找到最小的矩形，该矩形可能有方向
-            rect = cv2.minAreaRect(contour)
-            a, b, c = rect
+            # rect = cv2.minAreaRect(contour)  # 最小的包裹斜矩形（可能有方向）
+            # box = cv2.boxPoints(rect)  # box 是四个点的坐标
+            # box = np.int0(box)
 
-            # box是四个点的坐标
-            box = cv2.boxPoints(rect)
-            box = np.int0(box)
+            # top_y = box[2][1]
+            # bottom_y = box[0][1]
+            # top_x = box[0][0]
+            # bottom_x = box[2][0]
 
-            top_y = box[2][1]
-            bottom_y = box[0][1]
-            top_x = box[0][0]
-            bottom_x = box[2][0]
+            x, y, w, h = cv2.boundingRect(contour)  # 最小包裹正矩形
+            top_x, top_y, bottom_x, bottom_y = x, y, x + w, y + h
 
             # 筛选限定范围内的
             (_top_x, _top_y, _bottom_x, _bottom_y) = self._region
@@ -153,60 +152,64 @@ class Detect(object):
 
             # print("rect is: ", a, b)
             print('top_x:{} top_y:{} bottom_x:{} bottom_y:{}'.format(top_x, top_y, bottom_x, bottom_y))
-            region.append(box)
+            region.append((top_x, top_y, bottom_x, bottom_y))
+            # region.append(box)
 
         return region
 
-    def find_paragraph(self, region):
+    # def to_vh_box(self, box):  # 转换为水平垂直矩形，对角线坐标
+    #     return min(box[0][0], box[1][0], box[2][0], box[3][0]), min(box[0][1], box[1][1], box[2][1], box[3][1]), \
+    #            max(box[0][0], box[1][0], box[2][0], box[3][0]), max(box[0][1], box[1][1], box[2][1], box[3][1])
+
+    def to_vh_box(self, box):  # 转换为水平垂直矩形，对角线坐标
+        return box
+
+    def find_paragraph(self, region, cnt=2):
+        if cnt == 0:
+            return region
+
         focus = []
-        done = []
+        merged = []
         for i in range(len(region)):
-            print(len(region), done)
-            if i in done:
+            print(len(region), merged)
+            if i in merged:
                 continue
 
-            r1 = region[i]
-            top_x1 = r1[0][0]
-            top_y1 = r1[2][1]
-            bottom_x1 = max(r1[2][0], r1[3][0])
-            bottom_y1 = r1[0][1]
+            top_x1, top_y1, bottom_x1, bottom_y1 = region[i]
 
             for j in range(len(region)):
-                if j in done or j == i:
+                if j in merged or j == i:
                     continue
 
-                r2 = region[j]
-                top_x2 = r2[0][0]
-                top_y2 = r2[2][1]
-                bottom_x2 = max(r2[2][0], r2[3][0])
-                bottom_y2 = r2[0][1]
+                top_x2, top_y2, bottom_x2, bottom_y2 = region[j]
 
                 # 小于行间距
-                if abs((bottom_y1 + top_y1) / 2 - (bottom_y2 + top_y2) / 2) < self._spacing * 2:
+                if abs((bottom_y1 + top_y1) / 2 - (bottom_y2 + top_y2) / 2) < self._spacing:
                     print(top_x1, top_y1, bottom_x1, bottom_y1, 'VS', top_x2, top_y2, bottom_x2, bottom_y2)
                     focus.append((
                         min(top_x1, top_x2), min(top_y1, top_y2), max(bottom_x1, bottom_x2), max(bottom_y1, bottom_y2)
                     ))
-                    done.append(i)
-                    done.append(j)
-                else:
-                    focus.append((top_x1, top_y1, bottom_x1, bottom_y1))
+                    merged.append(i)
+                    merged.append(j)
+
+        for k in range(len(region)):
+            if k not in merged:
+                focus.append(region[k])
 
         if self._DEBUG:
             for f in focus:
                 (top_x, top_y, bottom_x, bottom_y) = f
-                cv2.rectangle(self._img_obj, (top_x, top_y), (bottom_x, bottom_y), (0, 0, 255), 2)
+                cv2.rectangle(self._img_obj, (top_x, top_y), (bottom_x, bottom_y),
+                              (0, 0, 255) if cnt == 1 else (255, 0, 255) if cnt == 2 else (255, 255, 0),
+                              2)
 
             cv2.namedWindow("paragraph", self.window_flags)
             cv2.resizeWindow("paragraph", 480, 800)
             cv2.imshow("paragraph", self._img_obj)
             cv2.moveWindow("paragraph", 1200 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
             cv2.imwrite("test_image/text_line/paragraph.png", self._img_obj)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
 
-    def merger(self, r1, r2):
-        pass
+        return self.find_paragraph(focus, cnt - 1)
 
     def detect(self, image_path):
         self._img_obj = cv2.imread(image_path)
@@ -214,8 +217,10 @@ class Detect(object):
         dilation = self.preprocess(gray)
         region = self.find_text_region(dilation)
         # 画轮廓（绿） (蓝,绿,红)
-        for box in region:
-            cv2.drawContours(self._img_obj, [box], 0, (0, 255, 0), 2)
+        for rect in region:
+            # cv2.drawContours(self._img_obj, [box], 0, (0, 255, 0), 2) # box 是4点的坐标
+            (top_x, top_y, bottom_x, bottom_y) = rect  # rect 是2点的坐标
+            cv2.rectangle(self._img_obj, (top_x, top_y), (bottom_x, bottom_y), (0, 255, 0), 2)
 
         if self._DEBUG:
             cv2.namedWindow("contours", self.window_flags)
@@ -223,19 +228,21 @@ class Detect(object):
             cv2.imshow("contours", self._img_obj)
             cv2.moveWindow("contours", 900 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
             cv2.imwrite("test_image/text_line/contours.png", self._img_obj)
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
 
-        self.find_paragraph(region)
+        self.find_paragraph(region, cnt=3)
+
+        if self._DEBUG:
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
-    # image_path = 'test_image/text_line/news{}.png'.format(17)  # qq bug 18 17
-    image_path = 'test_image/text_line/qq{}.png'.format(6)  # bug: 6
+    # image_path = 'test_image/text_line/news{}.png'.format(17)  # qq bug 14 18 17
+    # image_path = 'test_image/text_line/qq{}.png'.format(6)  # bug: 6
     # image_path = 'test_image/text_line/baidu{}.png'.format(4)  # bug: 6
     # image_path = 'test_image/text_line/shouhu{}.png'.format(7)
     # image_path = 'test_image/text_line/sina{}.png'.format(4)  # bug:4
-    # image_path = 'test_image/text_line/163_{}.png'.format(7)  # bug: 6 7
+    image_path = 'test_image/text_line/163_{}.png'.format(3)  # bug: 6 7
     # image_path = 'test_image/text_line/ifeng{}.png'.format(3)  # bug:3
     start = datetime.now()
     d = Detect(font_size=18)

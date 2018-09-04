@@ -18,7 +18,7 @@ for c in contours:
     # normalize coordinates to integers
     box = np.int0(box)
     # draw contours
-    cv2.drawContours(img, [box], 0, (0, 0, 255), 3)
+    # cv2.drawContours(img, [box], 0, (0, 0, 255), 3)  # red
 
     # calculate center and radius of minimum enclosing circle
     (x, y), radius = cv2.minEnclosingCircle(c)
@@ -26,10 +26,10 @@ for c in contours:
     center = (int(x), int(y))
     radius = int(radius)
     # draw the circle
-    img = cv2.circle(img, center, radius, (0, 255, 0), 2)
+    # img = cv2.circle(img, center, radius, (0, 255, 0), 2)
 
 if __name__ == '__main__':
-    cv2.drawContours(img, contours, -1, (255, 255, 0), 1)
+    # cv2.drawContours(img, contours, -1, (255, 255, 0), 1)
     cv2.imshow("contours", img)
 
     cv2.waitKey()
