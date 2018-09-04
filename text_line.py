@@ -5,11 +5,6 @@ from datetime import datetime
 from pprint import pprint
 
 
-# FONT_SIZE = 24
-# FONT_SIZE = 15
-# FONT_SIZE = 18
-
-
 class Detect(object):
     def __init__(self, font_size=18, region=(0, 0, 480, 800)):
         self._DEBUG = False
