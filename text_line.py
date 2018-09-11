@@ -11,53 +11,50 @@ class Detect(object):
         self.LINE_WORD_MIN = 5  # 5个字
         self.window_flags = cv2.WINDOW_NORMAL  # WINDOW_AUTOSIZE | WINDOW_KEEPRATIO | WINDOW_GUI_EXPANDED
         self._SHOW_TOP_X = 60
-        self._SHOW_TOP_Y = 100
+        self._SHOW_TOP_Y = 10
         self._font_size = font_size
         self._spacing = font_size * 3  # 行距为3倍字宽
         self._region = region
         self._img_obj = None
 
     def preprocess(self, gray):
-        # Sobel算子，x方向求梯度
+        # 二值化 x方向求梯度 GRADIENT
         sobel = cv2.Sobel(gray, cv2.CV_8U, 1, 0, ksize=3)
-
-        # 二值化
         ret, binary = cv2.threshold(sobel, 0, 255, cv2.THRESH_OTSU + cv2.THRESH_BINARY)
 
         # binary = cv2.GaussianBlur(binary, (7, 7), 0)
         if self._font_size == 15:
-            binary = cv2.medianBlur(binary, 3)
+            blur = cv2.medianBlur(binary, 3)
         elif self._font_size == 18:
-            binary = cv2.medianBlur(binary, 3)
-            binary = cv2.medianBlur(binary, 1)
-            binary = cv2.medianBlur(binary, 1)
+            blur = cv2.medianBlur(binary, 3)
+            blur = cv2.medianBlur(blur, 1)
+            blur = cv2.medianBlur(blur, 1)
         else:  # self._font_size = 24
-            binary = cv2.medianBlur(binary, 3)
-            binary = cv2.medianBlur(binary, 3)
-            binary = cv2.medianBlur(binary, 3)
+            blur = cv2.medianBlur(binary, 3)
+            blur = cv2.medianBlur(blur, 3)
+            blur = cv2.medianBlur(blur, 3)
 
-        # 膨胀和腐蚀操作的核函数
+        # 用于膨胀腐蚀的扁平核函数
         if self._font_size == 15:
-            erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 7))
-            dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
-            # dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
+            erosion_element = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 7))
+            dilation_element = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
         elif self._font_size == 18:
-            erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 7))
-            dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
-            # dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
+            erosion_element = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 7))
+            dilation_element = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 4))
         else:  # self._font_size == 24:
-            erosion_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
-            dilation_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
-            # dilation2_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
+            erosion_element = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 9))
+            dilation_element = cv2.getStructuringElement(cv2.MORPH_RECT, (24, 6))
 
-        # 膨胀一次，让轮廓突出
-        dilation = cv2.dilate(binary, dilation_rect, iterations=1)
+        # 膨胀：模糊汉字内部结构
+        dilation = cv2.dilate(blur, dilation_element, iterations=1)
 
-        # 腐蚀一次，去掉细节，如表格线等。去掉的是竖直的线
-        erosion = cv2.erode(dilation, erosion_rect, iterations=1)
+        # 腐蚀：去掉外围细节，散点，竖直线（扁平核）等
+        erosion = cv2.erode(dilation, erosion_element, iterations=1)
 
-        # 再次膨胀，轮廓明显
-        # dilation2 = cv2.dilate(erosion, dilation2_rect, iterations=3)
+        # 开运算(MORPH_OPEN)：先腐蚀后膨胀的过程。开运算可以用来消除小黑点，在纤细点处分离物体、平滑较大物体的边界的
+        #               同时并不明显改变其面积。
+        # 闭运算(MORPH_CLOSE)：先膨胀后腐蚀的过程。闭运算可以用来排除小黑洞。
+        open = cv2.morphologyEx(erosion, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
 
         if self._DEBUG:
             cv2.namedWindow("binary", self.window_flags)
@@ -65,6 +62,12 @@ class Detect(object):
             cv2.imshow("binary", binary)
             cv2.moveWindow("binary", self._SHOW_TOP_X, self._SHOW_TOP_Y)
             cv2.imwrite("test_image/text_line/binary.png", binary)
+
+            cv2.namedWindow("blur", self.window_flags)
+            cv2.resizeWindow("blur", 300, 500)
+            cv2.imshow("blur", blur)
+            cv2.moveWindow("blur", self._SHOW_TOP_X, 520 + self._SHOW_TOP_Y)
+            cv2.imwrite("test_image/text_line/blur.png", blur)
 
             cv2.namedWindow("dilation", self.window_flags)
             cv2.resizeWindow("dilation", 300, 500)
@@ -75,30 +78,37 @@ class Detect(object):
             cv2.namedWindow("erosion", self.window_flags)
             cv2.resizeWindow("erosion", 300, 500)
             cv2.imshow("erosion", erosion)
-            cv2.moveWindow("erosion", 600 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
+            cv2.moveWindow("erosion", 300 + self._SHOW_TOP_X, 520 + self._SHOW_TOP_Y)
             cv2.imwrite("test_image/text_line/erosion.png", erosion)
+
+            cv2.namedWindow("open", self.window_flags)
+            cv2.resizeWindow("open", 300, 500)
+            cv2.imshow("open", open)
+            cv2.moveWindow("open", 600 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
+            cv2.imwrite("test_image/text_line/erosion.png", open)
 
             # cv2.namedWindow("dilation2", cv2.WINDOW_NORMAL)
             # cv2.imshow("dilation2", dilation2)
             # cv2.imwrite("dilation2.png", dilation2)
 
-        return erosion
+        # return erosion
+        return open
 
     def find_text_region(self, img):
         '''
         查找和筛选文字区域
         '''
+        print('--------------------------------------------')
         region = []
-        image, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # RETR_EXTERNAL：仅提取外轮廓；  CHAIN_APPROX_SIMPLE：压缩直线冗余减少内存存储
+        image, contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
-            # 面积
-            area = cv2.contourArea(contour)
-
             # 筛选掉面积太小的
+            area = cv2.contourArea(contour)
             if area < self._font_size * self._font_size * self.LINE_WORD_MIN / 10:
                 continue
 
-            # # 近似多边形
+            # # 近似多边形，包围的边
             # epsilon = 0.01 * cv2.arcLength(contour, True)
             # approx = cv2.approxPolyDP(contour, epsilon, True)
             # print('approx:', len(approx))
@@ -117,56 +127,52 @@ class Detect(object):
             x, y, w, h = cv2.boundingRect(contour)  # 最小包裹正矩形
             top_x, top_y, bottom_x, bottom_y = x, y, x + w, y + h
 
-            # 筛选限定范围内的
+            # 筛选掉：限定范围以外的
             (_top_x, _top_y, _bottom_x, _bottom_y) = self._region
             if top_x < _top_x or top_y < _top_y or bottom_x > _bottom_x or bottom_y > _bottom_y:
                 continue
 
-            # 靠近顶端的可能是wifi、4G和电池
-            if top_y < 100:
+            # 筛选掉：靠近顶端的可能是wifi、4G和电池
+            if top_y < 25:
                 continue
 
             height = abs(bottom_y - top_y)
             width = abs(top_x - bottom_x)
 
-            # 筛选掉宽度小于5个字宽
+            # 筛选掉：宽度小于字宽要求
             if width < self.LINE_WORD_MIN * self._font_size:
                 continue
 
-            # 筛选掉瘦高，留下矮宽的
+            # 筛选掉：瘦高，留下矮宽的
             if height > width:
                 continue
 
-            # 筛选掉太矮的
+            # 筛选掉：太矮的
             if height < self._font_size * 0.6:
                 continue
 
-            # 筛选掉文字宽度不够的
+            # 筛选掉：文字宽度不够的
             if height * self.LINE_WORD_MIN > width:
                 continue
 
-            # print("rect is: ", a, b)
-            print('top_x:{} top_y:{} bottom_x:{} bottom_y:{}'.format(top_x, top_y, bottom_x, bottom_y))
+            print('({},{}) ({},{})'.format(top_x, top_y, bottom_x, bottom_y))
             region.append((top_x, top_y, bottom_x, bottom_y))
             # region.append(box)
 
         return region
 
-    # def to_vh_box(self, box):  # 转换为水平垂直矩形，对角线坐标
-    #     return min(box[0][0], box[1][0], box[2][0], box[3][0]), min(box[0][1], box[1][1], box[2][1], box[3][1]), \
-    #            max(box[0][0], box[1][0], box[2][0], box[3][0]), max(box[0][1], box[1][1], box[2][1], box[3][1])
-
     def to_vh_box(self, box):  # 转换为水平垂直矩形，对角线坐标
-        return box
+        return min(box[0][0], box[1][0], box[2][0], box[3][0]), min(box[0][1], box[1][1], box[2][1], box[3][1]), \
+               max(box[0][0], box[1][0], box[2][0], box[3][0]), max(box[0][1], box[1][1], box[2][1], box[3][1])
 
-    def find_paragraph(self, region, cnt=2):
-        if cnt == 0:
+    def find_paragraph(self, region, iterations=2):
+        if iterations == 0:
             return region
 
         focus = []
         merged = []
+
         for i in range(len(region)):
-            print(len(region), merged)
             if i in merged:
                 continue
 
@@ -180,7 +186,9 @@ class Detect(object):
 
                 # 小于行间距
                 if abs((bottom_y1 + top_y1) / 2 - (bottom_y2 + top_y2) / 2) < self._spacing:
-                    print(top_x1, top_y1, bottom_x1, bottom_y1, 'VS', top_x2, top_y2, bottom_x2, bottom_y2)
+                    print('({},{}) ({},{})>>> merge <<<({},{}) ({},{})'.format(
+                        top_x1, top_y1, bottom_x1, bottom_y1, top_x2, top_y2, bottom_x2, bottom_y2
+                    ))
                     focus.append((
                         min(top_x1, top_x2), min(top_y1, top_y2), max(bottom_x1, bottom_x2), max(bottom_y1, bottom_y2)
                     ))
@@ -194,9 +202,9 @@ class Detect(object):
         if self._DEBUG:
             for f in focus:
                 (top_x, top_y, bottom_x, bottom_y) = f
-                cv2.rectangle(self._img_obj, (top_x, top_y), (bottom_x, bottom_y),
-                              (0, 0, 255) if cnt == 1 else (255, 0, 255) if cnt == 2 else (255, 255, 0),
-                              2)
+                cv2.rectangle(
+                    self._img_obj, (top_x, top_y), (bottom_x, bottom_y),
+                    (0, 0, 255) if iterations == 1 else (255, 0, 255) if iterations == 2 else (255, 255, 0), 2)
 
             cv2.namedWindow("paragraph", self.window_flags)
             cv2.resizeWindow("paragraph", 480, 800)
@@ -204,7 +212,7 @@ class Detect(object):
             cv2.moveWindow("paragraph", 1200 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
             cv2.imwrite("test_image/text_line/paragraph.png", self._img_obj)
 
-        return self.find_paragraph(focus, cnt - 1)
+        return self.find_paragraph(focus, iterations - 1)
 
     def detect(self, image_path):
         self._img_obj = cv2.imread(image_path)
@@ -224,7 +232,8 @@ class Detect(object):
             cv2.moveWindow("contours", 900 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
             cv2.imwrite("test_image/text_line/contours.png", self._img_obj)
 
-        self.find_paragraph(region, cnt=3)
+        print('--------------------------------------------')
+        self.find_paragraph(region, iterations=3)
 
         if self._DEBUG:
             cv2.waitKey(0)
@@ -232,13 +241,17 @@ class Detect(object):
 
 
 if __name__ == '__main__':
-    # image_path = 'test_image/text_line/news{}.png'.format(17)  # qq bug 14 18 17
-    # image_path = 'test_image/text_line/qq{}.png'.format(6)  # bug: 6
-    # image_path = 'test_image/text_line/baidu{}.png'.format(4)  # bug: 6
-    # image_path = 'test_image/text_line/shouhu{}.png'.format(7)
+    print('--------------------------------------------')
+    print('OpenCV Ver:{}'.format(cv2.getVersionString()))
+
+    # image_path = 'test_image/text_line/news{}.png'.format(14)  # qq bug 14 18 17
+    # image_path = 'test_image/text_line/qq{}.png'.format(6)  # bug: 6 open运算后解决6
+    # image_path = 'test_image/text_line/baidu{}.png'.format(2)  # bug: 6
+    # image_path = 'test_image/text_line/shouhu{}.png'.format(4)
     # image_path = 'test_image/text_line/sina{}.png'.format(4)  # bug:4
-    # image_path = 'test_image/text_line/163_{}.png'.format(5)  # bug: 6 7
-    image_path = 'test_image/text_line/ifeng{}.png'.format(3)  # bug:3  font_size=15
+    # image_path = 'test_image/text_line/163_{}.png'.format(6)  # bug: 6 7
+    image_path = 'test_image/text_line/ifeng{}.png'.format(8)  # bug:3 7 8 font_size=15
+
     start = datetime.now()
     d = Detect(font_size=18)
     d._DEBUG = True
