@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 
 cnt = 0
 queryImage = cv2.imread('./images/kuaishou/share.png', 0)
-trainingImage = cv2.imread('./images/kuaishou/bg1.png', 0)
-# trainingImage = cv2.imread('./images/kuaishou/bb.jpg', 0)
+# trainingImage = cv2.imread('./images/kuaishou/bg1.png', 0)
+trainingImage = cv2.imread('./images/kuaishou/bb.jpg', 0)
 
 start = datetime.now()
 
