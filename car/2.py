@@ -1,3 +1,4 @@
+from pprint import pprint
 from aip import AipImageClassify
 
 APP_ID = '14131380'
@@ -20,9 +21,10 @@ image = get_file_content('./images/A4L1.jpg')
 client.carDetect(image)
 
 """ 如果有可选参数 """
-options = {}
-options["top_num"] = 3
-options["baike_num"] = 5
+options = {
+    'top_num': 3,
+    'baike_num': 5
+}
 
 """ 带参数调用车辆识别 """
-print(client.carDetect(image, options))
+pprint(client.carDetect(image, options))
