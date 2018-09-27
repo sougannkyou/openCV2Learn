@@ -1,8 +1,6 @@
-import sys
-import cv2
-import numpy as np
 from datetime import datetime
-from pprint import pprint
+
+import cv2
 
 
 class Detect(object):
@@ -61,31 +59,31 @@ class Detect(object):
             cv2.resizeWindow("binary", 300, 500)
             cv2.imshow("binary", binary)
             cv2.moveWindow("binary", self._SHOW_TOP_X, self._SHOW_TOP_Y)
-            cv2.imwrite("test_image/text_line/binary.png", binary)
+            cv2.imwrite("./test_image/text_line/binary.png", binary)
 
             cv2.namedWindow("blur", self.window_flags)
             cv2.resizeWindow("blur", 300, 500)
             cv2.imshow("blur", blur)
             cv2.moveWindow("blur", self._SHOW_TOP_X, 520 + self._SHOW_TOP_Y)
-            cv2.imwrite("test_image/text_line/blur.png", blur)
+            cv2.imwrite("./test_image/text_line/blur.png", blur)
 
             cv2.namedWindow("dilation", self.window_flags)
             cv2.resizeWindow("dilation", 300, 500)
             cv2.imshow("dilation", dilation)
             cv2.moveWindow("dilation", 300 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
-            cv2.imwrite("test_image/text_line/dilation.png", dilation)
+            cv2.imwrite("./test_image/text_line/dilation.png", dilation)
 
             cv2.namedWindow("erosion", self.window_flags)
             cv2.resizeWindow("erosion", 300, 500)
             cv2.imshow("erosion", erosion)
             cv2.moveWindow("erosion", 300 + self._SHOW_TOP_X, 520 + self._SHOW_TOP_Y)
-            cv2.imwrite("test_image/text_line/erosion.png", erosion)
+            cv2.imwrite("./test_image/text_line/erosion.png", erosion)
 
             cv2.namedWindow("open", self.window_flags)
             cv2.resizeWindow("open", 300, 500)
             cv2.imshow("open", open)
             cv2.moveWindow("open", 600 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
-            cv2.imwrite("test_image/text_line/erosion.png", open)
+            cv2.imwrite("./test_image/text_line/erosion.png", open)
 
             # cv2.namedWindow("dilation2", cv2.WINDOW_NORMAL)
             # cv2.imshow("dilation2", dilation2)
@@ -210,7 +208,7 @@ class Detect(object):
             cv2.resizeWindow("paragraph", 480, 800)
             cv2.imshow("paragraph", self._img_obj)
             cv2.moveWindow("paragraph", 1200 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
-            cv2.imwrite("test_image/text_line/paragraph.png", self._img_obj)
+            cv2.imwrite("./test_image/text_line/paragraph.png", self._img_obj)
 
         return self.find_paragraph(focus, iterations - 1)
 
@@ -230,7 +228,7 @@ class Detect(object):
             cv2.resizeWindow("contours", 300, 500)
             cv2.imshow("contours", self._img_obj)
             cv2.moveWindow("contours", 900 + self._SHOW_TOP_X, self._SHOW_TOP_Y)
-            cv2.imwrite("test_image/text_line/contours.png", self._img_obj)
+            cv2.imwrite("./test_image/text_line/contours.png", self._img_obj)
 
         print('--------------------------------------------')
         self.find_paragraph(region, iterations=3)
@@ -244,13 +242,13 @@ if __name__ == '__main__':
     print('--------------------------------------------')
     print('OpenCV Ver:{}'.format(cv2.getVersionString()))
 
-    # image_path = 'test_image/text_line/news{}.png'.format(14)  # qq bug 14 18 17
-    # image_path = 'test_image/text_line/qq{}.png'.format(6)  # bug: 6 open运算后解决6
-    # image_path = 'test_image/text_line/baidu{}.png'.format(2)  # bug: 6
-    # image_path = 'test_image/text_line/shouhu{}.png'.format(4)
-    # image_path = 'test_image/text_line/sina{}.png'.format(4)  # bug:4
-    # image_path = 'test_image/text_line/163_{}.png'.format(6)  # bug: 6 7
-    image_path = 'test_image/text_line/ifeng{}.png'.format(8)  # bug:3 7 8 font_size=15
+    # image_path = './test_image/text_line/news{}.png'.format(14)  # qq bug 14 18 17
+    # image_path = './test_image/text_line/qq{}.png'.format(6)  # bug: 6 open运算后解决6
+    # image_path = './test_image/text_line/baidu{}.png'.format(2)  # bug: 6
+    # image_path = './test_image/text_line/shouhu{}.png'.format(4)
+    # image_path = './test_image/text_line/sina{}.png'.format(4)  # bug:4
+    # image_path = './test_image/text_line/163_{}.png'.format(6)  # bug: 6 7
+    image_path = './test_image/text_line/ifeng{}.png'.format(3)  # bug:3 7 8 font_size=15
 
     start = datetime.now()
     d = Detect(font_size=18)

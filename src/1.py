@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # 加载原图
-img = cv2.imread('walks.jpg')
+img = cv2.imread('./temp/walks.jpg')
 print('img:', type(img), img.shape, img.dtype)
 cv2.imshow('img', img)
 cv2.waitKey(3000)
